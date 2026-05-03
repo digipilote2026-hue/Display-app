@@ -1,5 +1,6 @@
 package com.dirhamx.display
 
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.Typeface
@@ -8,7 +9,6 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.*
 import android.widget.*
-import android.app.Activity
 
 class SetupActivity : Activity() {
 
@@ -17,119 +17,96 @@ class SetupActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setFullscreen()
-
-        val root = buildUI()
-        setContentView(root)
-
-        // Pré-remplir l'URL existante si reconfiguration
-        Prefs.getUrl(this)?.let { urlInput.setText(it) }
+        try {
+            setFullscreen()
+            setContentView(buildUI())
+            Prefs.getUrl(this)?.let { urlInput.setText(it) }
+        } catch (e: Exception) {
+            // fallback minimal si buildUI échoue
+            val tv = TextView(this)
+            tv.text = "Erreur: ${e.message}"
+            tv.setTextColor(Color.WHITE)
+            tv.setBackgroundColor(Color.BLACK)
+            setContentView(tv)
+        }
     }
 
     private fun buildUI(): View {
-        val root = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity     = Gravity.CENTER
-            setBackgroundColor(Color.parseColor("#0D1117"))
-            setPadding(dp(80), dp(60), dp(80), dp(60))
-        }
+        val root = LinearLayout(this)
+        root.orientation = LinearLayout.VERTICAL
+        root.gravity     = Gravity.CENTER
+        root.setBackgroundColor(Color.parseColor("#0D1117"))
+        root.setPadding(dp(80), dp(60), dp(80), dp(60))
 
-        // Titre
-        root.addView(TextView(this).apply {
-            text      = "Configuration de l'affichage"
-            textSize  = 28f
-            setTextColor(Color.WHITE)
-            typeface  = Typeface.DEFAULT_BOLD
-            gravity   = Gravity.CENTER
-            setPadding(0, 0, 0, dp(8))
-        })
+        val title = TextView(this)
+        title.text      = "DG Pilot — Configuration"
+        title.textSize  = 24f
+        title.setTextColor(Color.WHITE)
+        title.typeface  = Typeface.DEFAULT_BOLD
+        title.gravity   = Gravity.CENTER
+        title.setPadding(0, 0, 0, dp(8))
+        root.addView(title)
 
-        // Sous-titre
-        root.addView(TextView(this).apply {
-            text      = "Entrez l'URL de l'agence puis appuyez sur Enregistrer"
-            textSize  = 16f
-            setTextColor(Color.parseColor("#8B9BB4"))
-            gravity   = Gravity.CENTER
-            setPadding(0, 0, 0, dp(40))
-        })
+        val sub = TextView(this)
+        sub.text      = "Entrez l'URL de l'agence"
+        sub.textSize  = 15f
+        sub.setTextColor(Color.parseColor("#8B9BB4"))
+        sub.gravity   = Gravity.CENTER
+        sub.setPadding(0, 0, 0, dp(32))
+        root.addView(sub)
 
-        // Champ URL
-        urlInput = EditText(this).apply {
-            hint        = "https://change-display-demo.web.app/display-cashplus/?client=..."
-            textSize    = 15f
-            setTextColor(Color.WHITE)
-            setHintTextColor(Color.parseColor("#4A5568"))
-            setBackgroundColor(Color.parseColor("#1A2332"))
-            setPadding(dp(20), dp(18), dp(20), dp(18))
-            inputType   = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-            imeOptions  = android.view.inputmethod.EditorInfo.IME_ACTION_DONE
-            isFocusable = true
-            isFocusableInTouchMode = true
-            maxLines    = 2
-        }
+        urlInput = EditText(this)
+        urlInput.hint        = "https://change-display-demo.web.app/display-cashplus/?client=..."
+        urlInput.textSize    = 14f
+        urlInput.setTextColor(Color.WHITE)
+        urlInput.setHintTextColor(Color.parseColor("#4A5568"))
+        urlInput.setBackgroundColor(Color.parseColor("#1A2332"))
+        urlInput.setPadding(dp(20), dp(16), dp(20), dp(16))
+        urlInput.inputType   = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
+        urlInput.maxLines    = 2
+        urlInput.isFocusable = true
+        urlInput.isFocusableInTouchMode = true
         val urlParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.MATCH_PARENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
-        ).also { it.bottomMargin = dp(24) }
+        )
+        urlParams.bottomMargin = dp(20)
         root.addView(urlInput, urlParams)
 
-        // Message de statut
-        statusText = TextView(this).apply {
-            text      = ""
-            textSize  = 14f
-            gravity   = Gravity.CENTER
-            setPadding(0, 0, 0, dp(24))
-        }
+        statusText = TextView(this)
+        statusText.text    = ""
+        statusText.textSize = 13f
+        statusText.gravity = Gravity.CENTER
+        statusText.setPadding(0, 0, 0, dp(20))
         root.addView(statusText)
 
-        // Bouton Enregistrer
-        val btn = Button(this).apply {
-            text      = "Enregistrer et démarrer"
-            textSize  = 18f
-            typeface  = Typeface.DEFAULT_BOLD
-            setTextColor(Color.WHITE)
-            setBackgroundColor(Color.parseColor("#00B4CC"))
-            setPadding(dp(40), dp(16), dp(40), dp(16))
-            isFocusable = true
-            setOnClickListener { onSave() }
-        }
+        val btn = Button(this)
+        btn.text     = "Enregistrer et démarrer"
+        btn.textSize = 16f
+        btn.typeface = Typeface.DEFAULT_BOLD
+        btn.setTextColor(Color.WHITE)
+        btn.setBackgroundColor(Color.parseColor("#00B4CC"))
+        btn.setPadding(dp(32), dp(14), dp(32), dp(14))
+        btn.setOnClickListener { onSave() }
         val btnParams = LinearLayout.LayoutParams(
             LinearLayout.LayoutParams.WRAP_CONTENT,
             LinearLayout.LayoutParams.WRAP_CONTENT
-        ).also { it.gravity = Gravity.CENTER_HORIZONTAL }
+        )
+        btnParams.gravity = Gravity.CENTER_HORIZONTAL
         root.addView(btn, btnParams)
-
-        // Note bas de page
-        root.addView(TextView(this).apply {
-            text      = "Appui long 5s sur l'écran pour reconfigurer"
-            textSize  = 12f
-            setTextColor(Color.parseColor("#4A5568"))
-            gravity   = Gravity.CENTER
-            setPadding(0, dp(32), 0, 0)
-        })
 
         return root
     }
 
     private fun onSave() {
         val url = urlInput.text.toString().trim()
-
-        if (url.isEmpty()) {
-            showError("L'URL ne peut pas être vide")
-            return
-        }
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            showError("L'URL doit commencer par https://")
-            return
-        }
-
+        if (url.isEmpty()) { showError("URL vide"); return }
+        if (!url.startsWith("http")) { showError("URL invalide"); return }
         Prefs.saveUrl(this, url)
-        showSuccess("URL enregistrée — démarrage...")
-
+        showSuccess("Enregistré — démarrage...")
         urlInput.postDelayed({
-            startActivity(Intent(this, MainActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
-            })
+            startActivity(Intent(this, MainActivity::class.java)
+                .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK))
             finish()
         }, 800)
     }
@@ -164,8 +141,7 @@ class SetupActivity : Activity() {
         if (hasFocus) setFullscreen()
     }
 
-    override fun onBackPressed() { /* bloquer */ }
+    override fun onBackPressed() {}
 
-    private fun dp(value: Int): Int =
-        (value * resources.displayMetrics.density).toInt()
+    private fun dp(v: Int) = (v * resources.displayMetrics.density).toInt()
 }
