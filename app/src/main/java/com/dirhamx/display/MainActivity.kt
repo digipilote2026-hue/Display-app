@@ -47,7 +47,6 @@ class MainActivity : Activity() {
 
         try {
             keepScreenOn()
-            setFullscreen()
 
             val url = Prefs.getUrl(this)
             if (url == null) {
@@ -57,6 +56,7 @@ class MainActivity : Activity() {
 
             val container = FrameLayout(this)
             setContentView(container)
+            setFullscreen()
 
             val wv = WebView(this)
             webView = wv

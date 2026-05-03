@@ -18,8 +18,8 @@ class SetupActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         try {
-            setFullscreen()
             setContentView(buildUI())
+            setFullscreen()
             Prefs.getUrl(this)?.let { urlInput.setText(it) }
         } catch (e: Exception) {
             // fallback minimal si buildUI échoue
