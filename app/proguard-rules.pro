@@ -1,0 +1,3 @@
+-keep class com.dirhamx.display.** { *; }
+-keepattributes *Annotation*
+-dontwarn android.webkit.**

@@ -1,0 +1,59 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+}
+
+android {
+    namespace 'com.dirhamx.display'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.dirhamx.display"
+        minSdk 21          // Android 5.0 — couvre toutes les TV boxes
+        targetSdk 33       // Android 13 — stable, pas de restrictions API 34
+        versionCode 1
+        versionName "1.0"
+    }
+
+    // APK universel : tous les ABIs dans un seul fichier
+    splits {
+        abi {
+            enable false   // désactiver les splits ABI
+        }
+    }
+
+    buildTypes {
+        debug {
+            // Pas de suffix : package reste com.dirhamx.display
+            debuggable true
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+
+    // Nommer l'APK directement à la sortie
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            if (variant.buildType.name == 'debug') {
+                outputFileName = "cashplus-display-universal-debug.apk"
+            }
+        }
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+}
