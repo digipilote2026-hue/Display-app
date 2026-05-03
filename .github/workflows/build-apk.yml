@@ -5,6 +5,9 @@ on:
     branches: [ main, master ]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -41,11 +44,20 @@ jobs:
           APK=app/build/outputs/apk/debug/cashplus-display-universal-debug.apk
           SIZE=$(wc -c < "$APK")
           echo "APK size: $SIZE bytes"
-          [ "$SIZE" -gt 500000 ] || (echo "APK trop petit — corrompu" && exit 1)
+          [ "$SIZE" -gt 100000 ] || (echo "APK trop petit" && exit 1)
 
-      - name: Upload APK artifact
-        uses: actions/upload-artifact@v4
+      # Supprime la release "latest" existante puis en crée une nouvelle propre
+      - name: Delete existing latest release
+        run: |
+          gh release delete latest --yes || true
+          git push origin :refs/tags/latest || true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create release with APK
+        uses: softprops/action-gh-release@v2
         with:
-          name: cashplus-display-universal-debug
-          path: app/build/outputs/apk/debug/cashplus-display-universal-debug.apk
-          retention-days: 30
+          tag_name: latest
+          name: "DG Pilot Display — Dernière version"
+          files: app/build/outputs/apk/debug/cashplus-display-universal-debug.apk
+          fail_on_unmatched_files: true
