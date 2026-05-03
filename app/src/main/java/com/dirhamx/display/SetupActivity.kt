@@ -20,7 +20,7 @@ class SetupActivity : Activity() {
         try {
             setContentView(buildUI())
             setFullscreen()
-            Prefs.getUrl(this)?.let { urlInput.setText(it) }
+            Prefs.getClient(this)?.let { urlInput.setText(it) }
         } catch (e: Exception) {
             // fallback minimal si buildUI échoue
             val tv = TextView(this)
@@ -39,7 +39,7 @@ class SetupActivity : Activity() {
         root.setPadding(dp(80), dp(60), dp(80), dp(60))
 
         val title = TextView(this)
-        title.text      = "DG Pilot — Configuration"
+        title.text      = "DG Pilot — Configurer l'agence"
         title.textSize  = 24f
         title.setTextColor(Color.WHITE)
         title.typeface  = Typeface.DEFAULT_BOLD
@@ -48,7 +48,7 @@ class SetupActivity : Activity() {
         root.addView(title)
 
         val sub = TextView(this)
-        sub.text      = "Entrez l'URL de l'agence"
+        sub.text      = "Entrez le nom de l'agence"
         sub.textSize  = 15f
         sub.setTextColor(Color.parseColor("#8B9BB4"))
         sub.gravity   = Gravity.CENTER
@@ -56,14 +56,14 @@ class SetupActivity : Activity() {
         root.addView(sub)
 
         urlInput = EditText(this)
-        urlInput.hint        = "https://change-display-demo.web.app/display-cashplus/?client=..."
-        urlInput.textSize    = 14f
+        urlInput.hint        = "agence-ziraoui"
+        urlInput.textSize    = 18f
         urlInput.setTextColor(Color.WHITE)
         urlInput.setHintTextColor(Color.parseColor("#4A5568"))
         urlInput.setBackgroundColor(Color.parseColor("#1A2332"))
         urlInput.setPadding(dp(20), dp(16), dp(20), dp(16))
-        urlInput.inputType   = InputType.TYPE_CLASS_TEXT or InputType.TYPE_TEXT_VARIATION_URI
-        urlInput.maxLines    = 2
+        urlInput.inputType   = InputType.TYPE_CLASS_TEXT
+        urlInput.maxLines    = 1
         urlInput.isFocusable = true
         urlInput.isFocusableInTouchMode = true
         val urlParams = LinearLayout.LayoutParams(
@@ -99,10 +99,9 @@ class SetupActivity : Activity() {
     }
 
     private fun onSave() {
-        val url = urlInput.text.toString().trim()
-        if (url.isEmpty()) { showError("URL vide"); return }
-        if (!url.startsWith("http")) { showError("URL invalide"); return }
-        Prefs.saveUrl(this, url)
+        val client = urlInput.text.toString().trim()
+        if (client.isEmpty()) { showError("Nom de l'agence vide"); return }
+        Prefs.saveClient(this, client)
         showSuccess("Enregistré — démarrage...")
         urlInput.postDelayed({
             startActivity(Intent(this, MainActivity::class.java)
