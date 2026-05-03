@@ -19,16 +19,9 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
-          cache: gradle
 
       - name: Accept Android SDK licenses
-        run: yes | $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager --licenses || true
-
-      - name: Install SDK platform + build-tools 33
-        run: |
-          $ANDROID_SDK_ROOT/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-33" \
-            "build-tools;33.0.2"
+        run: yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
 
       - name: Download Gradle wrapper jar
         run: |
@@ -40,34 +33,15 @@ jobs:
       - name: Make gradlew executable
         run: chmod +x gradlew
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
-          restore-keys: gradle-
-
       - name: Build debug APK
         run: ./gradlew assembleDebug --stacktrace
-        env:
-          ANDROID_SDK_ROOT: ${{ env.ANDROID_SDK_ROOT }}
 
-      - name: Verify APK exists and size
+      - name: Verify APK size
         run: |
           APK=app/build/outputs/apk/debug/cashplus-display-universal-debug.apk
-          if [ ! -f "$APK" ]; then
-            echo "APK NOT FOUND"
-            exit 1
-          fi
           SIZE=$(wc -c < "$APK")
           echo "APK size: $SIZE bytes"
-          if [ "$SIZE" -lt 500000 ]; then
-            echo "APK trop petit — probablement corrompu"
-            exit 1
-          fi
-          echo "APK OK"
+          [ "$SIZE" -gt 500000 ] || (echo "APK trop petit — corrompu" && exit 1)
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
