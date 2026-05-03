@@ -8,9 +8,9 @@ import android.os.Bundle
 import android.text.InputType
 import android.view.*
 import android.widget.*
-import androidx.appcompat.app.AppCompatActivity
+import android.app.Activity
 
-class SetupActivity : AppCompatActivity() {
+class SetupActivity : Activity() {
 
     private lateinit var urlInput: EditText
     private lateinit var statusText: TextView

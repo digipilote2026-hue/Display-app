@@ -13,9 +13,9 @@ import android.os.Looper
 import android.view.*
 import android.webkit.*
 import android.widget.FrameLayout
-import androidx.appcompat.app.AppCompatActivity
+import android.app.Activity
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : Activity() {
 
     private lateinit var webView: WebView
     private val handler = Handler(Looper.getMainLooper())
