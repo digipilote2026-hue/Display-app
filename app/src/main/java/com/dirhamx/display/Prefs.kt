@@ -3,27 +3,13 @@ package com.dirhamx.display
 import android.content.Context
 
 object Prefs {
-    private const val FILE    = "display_prefs"
-    private const val KEY_CLIENT = "agency_client"
-    private const val BASE_URL   = "https://change-display-demo.web.app/display-cashplus/?client="
+    // URL fixe — la page /tv/ gère le login nom + mot de passe
+    private const val TV_URL = "https://change-display-demo.web.app/tv/"
 
-    fun getUrl(ctx: Context): String? {
-        val client = ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)
-            .getString(KEY_CLIENT, null)
-            .takeIf { !it.isNullOrBlank() } ?: return null
-        return BASE_URL + client.trim()
-    }
+    fun getUrl(ctx: Context): String = TV_URL
 
-    fun getClient(ctx: Context): String? =
-        ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)
-            .getString(KEY_CLIENT, null)
-            .takeIf { !it.isNullOrBlank() }
-
-    fun saveClient(ctx: Context, client: String) =
-        ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)
-            .edit().putString(KEY_CLIENT, client.trim()).apply()
-
-    fun clear(ctx: Context) =
-        ctx.getSharedPreferences(FILE, Context.MODE_PRIVATE)
-            .edit().clear().apply()
+    // Conservés pour compatibilité mais non utilisés
+    fun saveClient(ctx: Context, client: String) {}
+    fun getClient(ctx: Context): String? = null
+    fun clear(ctx: Context) {}
 }

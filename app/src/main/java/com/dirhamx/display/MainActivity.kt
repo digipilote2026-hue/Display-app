@@ -3,7 +3,6 @@ package com.dirhamx.display
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
-import android.content.Intent
 import android.graphics.Bitmap
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -26,11 +25,13 @@ class MainActivity : Activity() {
     private var lastOkPress  = 0L
 
     companion object {
-        private const val BLANK_TIMEOUT_MS    = 15_000L
-        private const val ERROR_RETRY_MS      = 5_000L
+        private const val BLANK_TIMEOUT_MS     = 15_000L
+        private const val ERROR_RETRY_MS       = 5_000L
         private const val WATCHDOG_INTERVAL_MS = 30_000L
-        private const val OK_COMBO            = 5
-        private const val OK_WINDOW_MS        = 3_000L
+        private const val OK_COMBO             = 5
+        private const val OK_WINDOW_MS         = 3_000L
+        private const val TV_URL               = "https://change-display-demo.web.app/tv/"
+        private const val LS_KEY               = "dg_pilote_client"
     }
 
     private val watchdogRunnable = object : Runnable {
@@ -44,16 +45,8 @@ class MainActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
         try {
             keepScreenOn()
-
-            val url = Prefs.getUrl(this)
-            if (url == null) {
-                goToSetup()
-                return
-            }
-
             val container = FrameLayout(this)
             setContentView(container)
             setFullscreen()
@@ -67,12 +60,12 @@ class MainActivity : Activity() {
 
             configureWebView(wv)
             setWebClients(wv)
-            wv.loadUrl(url)
+            wv.loadUrl(TV_URL)
 
             handler.postDelayed(watchdogRunnable, WATCHDOG_INTERVAL_MS)
 
         } catch (e: Exception) {
-            goToSetup()
+            webView?.loadUrl(TV_URL)
         }
     }
 
@@ -81,15 +74,18 @@ class MainActivity : Activity() {
             val now = System.currentTimeMillis()
             if (now - lastOkPress > OK_WINDOW_MS) okPressCount = 0
             lastOkPress = now
-            if (++okPressCount >= OK_COMBO) { okPressCount = 0; goToSetup(); return true }
+            if (++okPressCount >= OK_COMBO) {
+                okPressCount = 0
+                // Effacer localStorage et revenir à l'écran de connexion
+                webView?.evaluateJavascript(
+                    "try{localStorage.removeItem('$LS_KEY');}catch(e){}" +
+                    "window.location.href='$TV_URL';",
+                    null
+                )
+                return true
+            }
         }
         return super.onKeyDown(keyCode, event)
-    }
-
-    private fun goToSetup() {
-        startActivity(Intent(this, SetupActivity::class.java)
-            .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK))
-        finish()
     }
 
     @SuppressLint("SetJavaScriptEnabled")
@@ -137,9 +133,8 @@ class MainActivity : Activity() {
     private fun reloadPage() {
         if (isReloading) return
         isReloading = true
-        val url = Prefs.getUrl(this) ?: return
         handler.post {
-            if (isNetworkAvailable()) webView?.loadUrl(url)
+            if (isNetworkAvailable()) webView?.loadUrl(TV_URL)
             else handler.postDelayed({ isReloading = false; reloadPage() }, ERROR_RETRY_MS)
         }
     }
@@ -162,7 +157,7 @@ class MainActivity : Activity() {
         ))
         configureWebView(newWv)
         setWebClients(newWv)
-        Prefs.getUrl(this)?.let { newWv.loadUrl(it) }
+        newWv.loadUrl(TV_URL)
     }
 
     private fun isNetworkAvailable(): Boolean {
@@ -205,7 +200,7 @@ class MainActivity : Activity() {
         if (!pageLoaded) scheduleReload()
     }
 
-    override fun onPause() { super.onPause(); webView?.onPause() }
+    override fun onPause()  { super.onPause();   webView?.onPause() }
 
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
